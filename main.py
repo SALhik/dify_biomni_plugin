@@ -3,11 +3,13 @@ Biomni Plugin Entry Point
 """
 
 from dify_plugin import Plugin, DifyPluginEnv
+import logging
 
 def create_plugin():
     """
     Create and configure the Biomni plugin
     """
+    logging.basicConfig(level=logging.INFO)
     plugin = Plugin(DifyPluginEnv())
     
     # The plugin will automatically discover providers and tools

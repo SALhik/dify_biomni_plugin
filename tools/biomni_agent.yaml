@@ -13,7 +13,7 @@ description:
 
 extra:
   python:
-    source: provider/biomni.py
+    source: tools/biomni_agent.py
 
 parameters:
   - name: research_query

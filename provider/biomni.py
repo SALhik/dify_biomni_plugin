@@ -7,6 +7,7 @@ import os
 import sys
 import importlib
 from typing import Any, Dict, Optional
+import inspect
 
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
 from dify_plugin.interfaces.tool import ToolProvider
@@ -40,7 +41,7 @@ class BiomniProvider(ToolProvider):
                     raise ImportError("Invalid BIOMNI_AGENT_IMPORT: module is empty")
                 module = importlib.import_module(module_path)
                 agent_obj: Optional[Any] = getattr(module, attribute_name) if attribute_name else module
-                if callable(agent_obj) and getattr(agent_obj, "__name__", None):
+                if inspect.isclass(agent_obj):
                     agent_obj = agent_obj()
             else:
                 try:
@@ -73,17 +74,3 @@ class BiomniProvider(ToolProvider):
         """
         return ["biomni_agent"]
 
-
-# --------------------------
-# Tool Implementation
-# --------------------------
-class BiomniTool(Tool):
-    """
-    Minimal Biomni Tool subclass required by plugin loader
-    """
-    name = "biomni_agent"
-
-    def run(self, input_data):
-        # Replace this with actual tool logic
-        logger.info(f"Running BiomniTool with input: {input_data}")
-        return f"Processed input: {input_data}"

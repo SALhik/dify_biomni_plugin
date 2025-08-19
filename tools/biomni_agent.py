@@ -7,6 +7,8 @@ import os
 import sys
 import time
 import importlib
+import inspect
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Any, Dict, Generator, Optional
 
 from dify_plugin import Tool
@@ -52,7 +54,7 @@ class BiomniAgentTool(Tool):
             if import_expr:
                 imported_obj = self._import_from_string(import_expr)
                 # If the imported object is a class, instantiate it; if it's an instance, use as-is
-                self.agent = imported_obj() if callable(imported_obj) and getattr(imported_obj, "__name__", None) else imported_obj
+                self.agent = imported_obj() if inspect.isclass(imported_obj) else imported_obj
             else:
                 # Best-effort default import if Biomni is installed as a package
                 try:
@@ -95,7 +97,23 @@ class BiomniAgentTool(Tool):
 
         research_query = tool_parameters.get("research_query", "").strip()
         max_execution_time = int(tool_parameters.get("max_execution_time", 600) or 600)
-        include_citations = bool(tool_parameters.get("include_citations", True))
+
+        def _to_bool(value: Any, default: bool = True) -> bool:
+            if isinstance(value, bool):
+                return value
+            if value is None:
+                return default
+            if isinstance(value, (int, float)):
+                return bool(value)
+            if isinstance(value, str):
+                v = value.strip().lower()
+                if v in {"true", "1", "yes", "y", "on"}:
+                    return True
+                if v in {"false", "0", "no", "n", "off"}:
+                    return False
+            return default
+
+        include_citations = _to_bool(tool_parameters.get("include_citations"), True)
 
         if not research_query:
             yield self.create_text_message("❌ **Error**: Please provide a research query")
@@ -133,7 +151,17 @@ class BiomniAgentTool(Tool):
                     )
 
             agent_callable = getattr(self.agent, method_name)
-            result = agent_callable(research_query)
+
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(agent_callable, research_query)
+                try:
+                    result = future.result(timeout=max_execution_time)
+                except FuturesTimeoutError:
+                    yield self.create_text_message(
+                        f"⏰ **Timeout**: The analysis exceeded the maximum execution time of {max_execution_time} seconds. "
+                        f"Try breaking down your query into smaller parts or increasing the timeout limit."
+                    )
+                    return
 
             execution_time = time.time() - start_time
 

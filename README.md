@@ -6,7 +6,7 @@ Create this exact folder structure:
 
 ```
 biomni_plugin/
-├── manifest.json                 # Plugin manifest
+├── manifest.yaml                # Plugin manifest (YAML)
 ├── main.py                      # Entry point
 ├── requirements.txt             # Dependencies
 ├── .env.example                 # Environment template
@@ -28,7 +28,7 @@ biomni_plugin/
 In **ALL** these files, replace `your-name` with your actual name:
 - `provider/biomni.yaml`
 - `tools/biomni_agent.yaml` 
-- `manifest.json`
+- `manifest.yaml`
 
 ### Step 2: Add Your Icon
 - Create or find a PNG icon for Biomni (recommended size: 256x256px)
@@ -124,7 +124,7 @@ If CLI tool isn't available:
 ```bash
 # Create a zip file with all plugin contents
 zip -r biomni.difypkg \
-    manifest.json \
+    manifest.yaml \
     main.py \
     requirements.txt \
     _assets/ \
