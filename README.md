@@ -114,7 +114,7 @@ You should see the plugin appear in your Dify workspace for testing.
 ### Method 1: Using Dify CLI Tool (Recommended)
 ```bash
 # In your plugin directory
-dify plugin build
+dify plugin package ./dify_biomni_plugin
 
 # This creates biomni.difypkg file
 ```
