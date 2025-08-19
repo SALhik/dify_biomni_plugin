@@ -9,19 +9,18 @@ identity:
     zh_Hans: 通用生物医学AI智能体，用于基因分析、药物研究、疾病诊断等研究任务
   icon: biomni_icon.png
   tags:
-    - research
-    - biomedical
-    - ai-agent
-    - analysis
+    - medical
+    - productivity
+    - utilities
 
 supported_model_types: []
 
 tools:
   - tools/biomni_agent.yaml
 
-provider_credential_schema:
-  credential_form_schemas: []
-
 extra:
   python:
-    provider_source: provider/biomni.py
+    source: provider/biomni.py
+
+provider_credential_schema:
+  credential_form_schemas: []
