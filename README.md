@@ -6,7 +6,7 @@ Create this exact folder structure:
 
 ```
 biomni_plugin/
-├── manifest.json                 # Plugin manifest
+├── manifest.yaml                # Plugin manifest
 ├── main.py                      # Entry point
 ├── requirements.txt             # Dependencies
 ├── .env.example                 # Environment template
@@ -25,10 +25,10 @@ biomni_plugin/
 ## 🔧 Configuration Steps
 
 ### Step 1: Update Plugin Metadata
-In **ALL** these files, replace `your-name` with your actual name:
+Ensure metadata is correct in these files (author, labels, etc.):
 - `provider/biomni.yaml`
 - `tools/biomni_agent.yaml` 
-- `manifest.json`
+- `manifest.yaml`
 
 ### Step 2: Add Your Icon
 - Create or find a PNG icon for Biomni (recommended size: 256x256px)
@@ -113,8 +113,8 @@ You should see the plugin appear in your Dify workspace for testing.
 
 ### Method 1: Using Dify CLI Tool (Recommended)
 ```bash
-# In your plugin directory
-dify plugin package ./dify_biomni_plugin
+# In your plugin root directory
+dify plugin package .
 
 # This creates biomni.difypkg file
 ```
@@ -124,7 +124,7 @@ If CLI tool isn't available:
 ```bash
 # Create a zip file with all plugin contents
 zip -r biomni.difypkg \
-    manifest.json \
+    manifest.yaml \
     main.py \
     requirements.txt \
     _assets/ \
