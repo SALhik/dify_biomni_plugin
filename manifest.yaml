@@ -1,0 +1,38 @@
+author: hhb
+created_at: '2025-01-22T00:00:00.000000000Z'
+description:
+  en_US: General-purpose biomedical AI agent for research tasks including gene analysis, drug research, disease diagnosis, microbiome analysis, and molecular cloning.
+  pt_BR: Agente de IA biomédica de uso geral para tarefas de pesquisa, incluindo análise genética, pesquisa de medicamentos, diagnóstico de doenças, análise de microbioma e clonagem molecular.
+  zh_Hans: 通用生物医学AI智能体，用于基因分析、药物研究、疾病诊断、微生物组分析和分子克隆等研究任务。
+icon: biomni_icon.png
+label:
+  en_US: Biomni Agent
+  pt_BR: Agente Biomni
+  zh_Hans: Biomni 智能体
+meta:
+  arch:
+  - amd64
+  - arm64
+  runner:
+    entrypoint: main
+    language: python
+    version: '3.12'
+  version: 0.1.0
+name: biomni
+plugins:
+  tools:
+  - provider/biomni.yaml
+resource:
+  memory: 2097152  # 2GB in KB (biomedical AI may need more memory)
+  permission:
+    model:
+      enabled: false
+      llm: false
+    tool:
+      enabled: true
+tags:
+- medical
+- productivity
+- utilities
+type: plugin
+version: 0.1.0
