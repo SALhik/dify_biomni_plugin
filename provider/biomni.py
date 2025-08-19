@@ -8,12 +8,16 @@ import sys
 import importlib
 from typing import Any, Dict, Optional
 
-from dify_plugin.entities.tool import ToolProviderCredentialValidationError
+from dify_plugin.errors.tool import ToolProviderCredentialValidationError
 from dify_plugin.interfaces.tool import ToolProvider
+from dify_plugin.interfaces.tool import Tool  # <-- import Tool for subclassing
 
 logger = logging.getLogger(__name__)
 
 
+# --------------------------
+# Tool Provider
+# --------------------------
 class BiomniProvider(ToolProvider):
     """
     Biomni tool provider for biomedical research tasks
@@ -23,10 +27,6 @@ class BiomniProvider(ToolProvider):
         """
         Validate the credentials for Biomni provider by attempting to import the agent
         configured via environment variables.
-
-        Environment variables:
-        - BIOMNI_PYTHON_PATH: Optional sys.path entry to locate Biomni source
-        - BIOMNI_AGENT_IMPORT: Import path like 'biomni.agent:agent' or 'biomni:BiomniAgent'
         """
         try:
             python_path = os.getenv("BIOMNI_PYTHON_PATH")
@@ -40,11 +40,9 @@ class BiomniProvider(ToolProvider):
                     raise ImportError("Invalid BIOMNI_AGENT_IMPORT: module is empty")
                 module = importlib.import_module(module_path)
                 agent_obj: Optional[Any] = getattr(module, attribute_name) if attribute_name else module
-                # If a class is provided, instantiate to ensure it is constructible
                 if callable(agent_obj) and getattr(agent_obj, "__name__", None):
                     agent_obj = agent_obj()
             else:
-                # Try default import if Biomni is installed
                 try:
                     module = importlib.import_module("biomni")
                     agent_obj = getattr(module, "agent", None)
@@ -71,6 +69,21 @@ class BiomniProvider(ToolProvider):
 
     def _get_tools(self) -> list:
         """
-        Get available tools from this provider
+        Return a list of available tool names from this provider
         """
         return ["biomni_agent"]
+
+
+# --------------------------
+# Tool Implementation
+# --------------------------
+class BiomniTool(Tool):
+    """
+    Minimal Biomni Tool subclass required by plugin loader
+    """
+    name = "biomni_agent"
+
+    def run(self, input_data):
+        # Replace this with actual tool logic
+        logger.info(f"Running BiomniTool with input: {input_data}")
+        return f"Processed input: {input_data}"
