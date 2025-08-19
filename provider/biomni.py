@@ -10,7 +10,6 @@ from typing import Any, Dict, Optional
 
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
 from dify_plugin.interfaces.tool import ToolProvider
-from dify_plugin.interfaces.tool import Tool  # <-- import Tool for subclassing
 
 logger = logging.getLogger(__name__)
 
@@ -77,13 +76,4 @@ class BiomniProvider(ToolProvider):
 # --------------------------
 # Tool Implementation
 # --------------------------
-class BiomniTool(Tool):
-    """
-    Minimal Biomni Tool subclass required by plugin loader
-    """
-    name = "biomni_agent"
-
-    def run(self, input_data):
-        # Replace this with actual tool logic
-        logger.info(f"Running BiomniTool with input: {input_data}")
-        return f"Processed input: {input_data}"
+    
