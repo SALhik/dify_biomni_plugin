@@ -1,0 +1,69 @@
+identity:
+  name: biomni_agent
+  author: your-name  # 🔧 CONFIGURE: Replace with your name
+  label:
+    en_US: Biomni Research Agent
+    zh_Hans: Biomni 研究智能体
+  description:
+    en_US: Execute biomedical research tasks using the Biomni general-purpose AI agent. Supports gene prioritization, drug repurposing, disease diagnosis, microbiome analysis, and molecular cloning.
+    zh_Hans: 使用Biomni通用AI智能体执行生物医学研究任务。支持基因优先级排序、药物重新定位、疾病诊断、微生物组分析和分子克隆。
+  icon: biomni_icon.png
+
+parameters:
+  - name: research_query
+    type: string
+    required: true
+    label:
+      en_US: Research Query
+      zh_Hans: 研究查询
+    human_description:
+      en_US: Your biomedical research question or task. Can include gene analysis, drug discovery, disease diagnosis, microbiome analysis, molecular cloning, or any other biomedical research query.
+      zh_Hans: 您的生物医学研究问题或任务。可以包括基因分析、药物发现、疾病诊断、微生物组分析、分子克隆或任何其他生物医学研究查询。
+    llm_description: |
+      A comprehensive biomedical research query to be processed by the Biomni agent. 
+      The agent can handle various biomedical tasks including:
+      - Gene prioritization and analysis
+      - Drug repurposing and discovery
+      - Rare disease diagnosis
+      - Microbiome analysis
+      - Molecular cloning workflows
+      - Protein structure analysis
+      - Genomic data interpretation
+      - Biomarker discovery
+      - Clinical trial analysis
+      - Pharmaceutical research
+      
+      Provide detailed context and specific requirements for best results.
+    form: both
+    placeholder:
+      en_US: "e.g., 'Analyze the role of BRCA1 mutations in breast cancer susceptibility and identify potential therapeutic targets'"
+      zh_Hans: "例如：'分析BRCA1突变在乳腺癌易感性中的作用并识别潜在治疗靶点'"
+
+  - name: max_execution_time
+    type: number
+    required: false
+    default: 600
+    min: 60
+    max: 3600
+    label:
+      en_US: Max Execution Time (seconds)
+      zh_Hans: 最大执行时间（秒）
+    human_description:
+      en_US: Maximum time to allow for the Biomni agent to process the query. Complex analyses may require more time.
+      zh_Hans: 允许Biomni智能体处理查询的最大时间。复杂分析可能需要更多时间。
+    form: form
+    placeholder:
+      en_US: "600"
+      zh_Hans: "600"
+
+  - name: include_citations
+    type: boolean
+    required: false
+    default: true
+    label:
+      en_US: Include Citations
+      zh_Hans: 包含引用
+    human_description:
+      en_US: Whether to include scientific citations and references in the response
+      zh_Hans: 是否在响应中包含科学引用和参考文献
+    form: form
