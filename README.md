@@ -34,54 +34,30 @@ In **ALL** these files, replace `your-name` with your actual name:
 - Create or find a PNG icon for Biomni (recommended size: 256x256px)
 - Place it at `_assets/biomni_icon.png`
 
-### Step 3: Configure Biomni Agent Import
-In `tools/biomni_agent.py`, update the `_setup_biomni_agent()` method:
+### Step 3: Configure Biomni Agent Import (via environment variables)
+Set these environment variables to point the plugin at your Biomni agent:
 
-```python
-def _setup_biomni_agent(self):
-    try:
-        # 🔧 CONFIGURE: Update this path to your Biomni installation
-        sys.path.append('/path/to/your/biomni')  # Change this path
-        
-        # 🔧 CONFIGURE: Update this import based on your Biomni structure
-        # Option 1: If you have a global agent instance
-        from your_biomni_module import agent
-        self.agent = agent
-        
-        # Option 2: If you need to create an agent instance
-        # from biomni import BiomniAgent
-        # self.agent = BiomniAgent()
-        
-        # Option 3: If you have a different setup
-        # import your_biomni_setup
-        # self.agent = your_biomni_setup.create_agent()
-        
-        logger.info("Biomni agent setup completed")
-    except Exception as e:
-        logger.error(f"Error setting up Biomni agent: {str(e)}")
-        self.agent = None
+```bash
+# Optional extra sys.path entry if Biomni lives outside site-packages
+export BIOMNI_PYTHON_PATH=/absolute/path/to/biomni/source
+
+# Import path to your agent class or instance. Examples:
+#   Package class:  biomni:BiomniAgent
+#   Module object:  biomni.agent:agent
+export BIOMNI_AGENT_IMPORT="biomni:BiomniAgent"
+
+# Optional method name to call on the agent (defaults to 'go').
+export BIOMNI_AGENT_METHOD=go
 ```
 
-### Step 4: Configure Agent Method Call
-In `tools/biomni_agent.py`, update the `_invoke()` method to use your agent's method:
-
-```python
-# Replace this section with your actual agent call:
-if hasattr(self.agent, 'go'):
-    result = self.agent.go(research_query)
-else:
-    # Update with your agent's actual method name:
-    # result = self.agent.process_query(research_query)
-    # result = self.agent.run(research_query)  
-    # result = self.agent.analyze(research_query)
-    raise AttributeError("Agent method not found. Please configure the correct method call.")
-```
+### Step 4: Agent Method Call
+`tools/biomni_agent.py` will call `BIOMNI_AGENT_METHOD` if set, otherwise tries `go`, `run`, `process_query`, then `__call__`.
 
 ### Step 5: Configure Result Formatting (Optional)
 In `tools/biomni_agent.py`, customize the `_format_result()` method based on your agent's output format.
 
 ### Step 6: Update Dependencies
-In `requirements.txt`, add all dependencies your Biomni agent needs.
+In `requirements.txt`, add all dependencies your Biomni agent needs. If Biomni is pip-installable, uncomment and pin `biomni`.
 
 ### Step 7: Create Empty __init__.py Files
 Create empty `__init__.py` files:
