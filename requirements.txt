@@ -1,0 +1,16 @@
+# Dify Plugin SDK
+dify-plugin>=0.1.0
+
+# Standard library extensions
+python-dotenv>=1.0.0
+
+# 🔧 CONFIGURE: Add your Biomni dependencies here
+# Example dependencies (replace with your actual requirements):
+# requests>=2.31.0
+# numpy>=1.24.0
+# pandas>=2.0.0
+# torch>=2.0.0
+# transformers>=4.30.0
+# langchain>=0.1.0
+
+# Add any other dependencies your Biomni agent requires
