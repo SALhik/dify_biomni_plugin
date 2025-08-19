@@ -1,12 +1,13 @@
-name: biomni_agent
-author: hhb
-label:
-  en_US: Biomni Research Agent
-  zh_Hans: Biomni 研究智能体
-description:
-  en_US: Execute biomedical research tasks using the Biomni general-purpose AI agent. Supports gene prioritization, drug repurposing, disease diagnosis, microbiome analysis, and molecular cloning.
-  zh_Hans: 使用Biomni通用AI智能体执行生物医学研究任务。支持基因优先级排序、药物重新定位、疾病诊断、微生物组分析和分子克隆。
-icon: biomni_icon.png
+identity:
+  name: biomni_agent
+  author: hhb
+  label:
+    en_US: Biomni Research Agent
+    zh_Hans: Biomni 研究智能体
+  description:
+    en_US: Execute biomedical research tasks using the Biomni general-purpose AI agent. Supports gene prioritization, drug repurposing, disease diagnosis, microbiome analysis, and molecular cloning.
+    zh_Hans: 使用Biomni通用AI智能体执行生物医学研究任务。支持基因优先级排序、药物重新定位、疾病诊断、微生物组分析和分子克隆。
+  icon: biomni_icon.png
 
 parameters:
   - name: research_query
