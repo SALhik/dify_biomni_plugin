@@ -67,3 +67,8 @@ parameters:
       en_US: Whether to include scientific citations and references in the response
       zh_Hans: 是否在响应中包含科学引用和参考文献
     form: form
+
+extra:
+  python:
+    tool_source: tools/biomni_agent.py
+    class_name: BiomniAgentTool

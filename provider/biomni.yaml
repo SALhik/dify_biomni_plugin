@@ -21,3 +21,7 @@ tools:
 
 provider_credential_schema:
   credential_form_schemas: []
+
+extra:
+  python:
+    provider_source: provider/biomni.py

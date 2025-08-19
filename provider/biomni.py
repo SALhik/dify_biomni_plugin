@@ -3,9 +3,11 @@ Biomni Provider Implementation
 """
 
 import logging
-from typing import Any, Dict
+import os
+import sys
+import importlib
+from typing import Any, Dict, Optional
 
-from dify_plugin.entities.model import AIModelEntity
 from dify_plugin.entities.tool import ToolProviderCredentialValidationError
 from dify_plugin.interfaces.tool import ToolProvider
 
@@ -16,32 +18,46 @@ class BiomniProvider(ToolProvider):
     """
     Biomni tool provider for biomedical research tasks
     """
-    
+
     def _validate_credentials(self, credentials: Dict[str, Any]) -> None:
         """
-        Validate the credentials for Biomni provider.
-        Since Biomni runs locally, we mainly check if the agent is accessible.
-        
-        Args:
-            credentials: The credentials to validate (empty for local agent)
-            
-        Raises:
-            ToolProviderCredentialValidationError: If validation fails
+        Validate the credentials for Biomni provider by attempting to import the agent
+        configured via environment variables.
+
+        Environment variables:
+        - BIOMNI_PYTHON_PATH: Optional sys.path entry to locate Biomni source
+        - BIOMNI_AGENT_IMPORT: Import path like 'biomni.agent:agent' or 'biomni:BiomniAgent'
         """
         try:
-            # 🔧 CONFIGURE: Add your Biomni agent import and basic validation here
-            # Example validation - replace with your actual agent import
-            
-            # import sys
-            # sys.path.append('/path/to/your/biomni')  # Configure your path
-            # from your_biomni_module import agent
-            
-            # Test basic agent availability
-            # You might want to do a simple test call here
-            # test_result = agent.test_connection()  # If you have such method
-            
+            python_path = os.getenv("BIOMNI_PYTHON_PATH")
+            if python_path and python_path not in sys.path:
+                sys.path.append(python_path)
+
+            import_expr = os.getenv("BIOMNI_AGENT_IMPORT")
+            if import_expr:
+                module_path, _, attribute_name = import_expr.partition(":")
+                if not module_path:
+                    raise ImportError("Invalid BIOMNI_AGENT_IMPORT: module is empty")
+                module = importlib.import_module(module_path)
+                agent_obj: Optional[Any] = getattr(module, attribute_name) if attribute_name else module
+                # If a class is provided, instantiate to ensure it is constructible
+                if callable(agent_obj) and getattr(agent_obj, "__name__", None):
+                    agent_obj = agent_obj()
+            else:
+                # Try default import if Biomni is installed
+                try:
+                    module = importlib.import_module("biomni")
+                    agent_obj = getattr(module, "agent", None)
+                    if agent_obj is None and hasattr(module, "BiomniAgent"):
+                        agent_obj = getattr(module, "BiomniAgent")()
+                except Exception as inner:
+                    raise ImportError(str(inner))
+
+            if agent_obj is None:
+                raise ImportError("Biomni agent could not be resolved")
+
             logger.info("Biomni agent validation successful")
-            
+
         except ImportError as e:
             logger.error(f"Failed to import Biomni agent: {str(e)}")
             raise ToolProviderCredentialValidationError(
