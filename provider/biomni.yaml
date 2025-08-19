@@ -1,0 +1,23 @@
+identity:
+  author: your-name  # 🔧 CONFIGURE: Replace with your name
+  name: biomni
+  label:
+    en_US: Biomni Agent
+    zh_Hans: Biomni 智能体
+  description:
+    en_US: General-purpose biomedical AI agent for research tasks including gene analysis, drug research, disease diagnosis, and more
+    zh_Hans: 通用生物医学AI智能体，用于基因分析、药物研究、疾病诊断等研究任务
+  icon: biomni_icon.png
+  tags:
+    - research
+    - biomedical
+    - ai-agent
+    - analysis
+
+supported_model_types: []
+
+tools:
+  - tools/biomni_agent.yaml
+
+provider_credential_schema:
+  credential_form_schemas: []
