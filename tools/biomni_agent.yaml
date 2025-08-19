@@ -1,13 +1,12 @@
 identity:
   name: biomni_agent
-  author: hhb
+  author: your-name  # 🔧 CONFIGURE: Replace with your name
   label:
     en_US: Biomni Research Agent
     zh_Hans: Biomni 研究智能体
   description:
     en_US: Execute biomedical research tasks using the Biomni general-purpose AI agent. Supports gene prioritization, drug repurposing, disease diagnosis, microbiome analysis, and molecular cloning.
     zh_Hans: 使用Biomni通用AI智能体执行生物医学研究任务。支持基因优先级排序、药物重新定位、疾病诊断、微生物组分析和分子克隆。
-  icon: biomni_icon.png
 
 parameters:
   - name: research_query
@@ -34,7 +33,7 @@ parameters:
       - Pharmaceutical research
       
       Provide detailed context and specific requirements for best results.
-    form: both
+    form: llm
     placeholder:
       en_US: "e.g., 'Analyze the role of BRCA1 mutations in breast cancer susceptibility and identify potential therapeutic targets'"
       zh_Hans: "例如：'分析BRCA1突变在乳腺癌易感性中的作用并识别潜在治疗靶点'"
@@ -67,8 +66,3 @@ parameters:
       en_US: Whether to include scientific citations and references in the response
       zh_Hans: 是否在响应中包含科学引用和参考文献
     form: form
-
-extra:
-  python:
-    tool_source: tools/biomni_agent.py
-    class_name: BiomniAgentTool
