@@ -18,8 +18,8 @@ class BiomniAgentTool(Tool):
     Tool for executing biomedical research tasks using Biomni A1 agent
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, runtime=None, session=None):
+        super().__init__(runtime=runtime, session=session)
         self.agent: Optional[Any] = None
         self._setup_biomni_agent()
 
