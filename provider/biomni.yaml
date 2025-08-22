@@ -1,12 +1,14 @@
-author: SALhik
-name: biomni
-label:
-  en_US: Biomni Agent
-  zh_Hans: Biomni 智能体
-description:
+identity:
+  author: hhb
+  name: biomni
+  label:
+    en_US: Biomni Agent
+    zh_Hans: Biomni 智能体
+  description:
     en_US: General-purpose biomedical AI agent for research tasks including gene analysis, drug research, disease diagnosis, and more
     zh_Hans: 通用生物医学AI智能体，用于基因分析、药物研究、疾病诊断等研究任务
-icon: biomni_icon.png
+  icon: biomni_icon.png
+
 tags:
   - medical
   - productivity
@@ -15,7 +17,7 @@ tags:
 supported_model_types: []
 
 tools:
-  - tools/biomni_agent.yaml
+  - tools/biomni_agent.yaml   # must be a string path
 
 extra:
   python:
