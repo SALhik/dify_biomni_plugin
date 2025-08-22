@@ -4,16 +4,33 @@ dify-plugin>=0.1.0
 # Standard library extensions
 python-dotenv>=1.0.0
 
-# 🔧 CONFIGURE: Add your Biomni dependencies here
-# Example dependencies (replace with your actual requirements):
-# requests>=2.31.0
-# numpy>=1.24.0
-# pandas>=2.0.0
-# torch>=2.0.0
-# transformers>=4.30.0
-# langchain>=0.1.0
+# Environment isolation helpers
+subprocess32; sys_platform == "linux"
+
+# 🔧 BIOMNI CONFIGURATION
+# Install Biomni with specific version constraints to avoid conflicts
+# biomni>=0.1.0
+
+# Common Biomni dependencies (adjust versions as needed)
+requests>=2.31.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Async handling (if needed for your specific Biomni version)
+# Avoid trio if possible in Dify environment
+# trio>=0.22.0  # Comment out if causing conflicts
+
+# LLM API clients (based on your chosen model)
+anthropic>=0.3.0  # For Claude models
+# openai>=1.0.0  # For GPT models  
+# google-generativeai>=0.3.0  # For Gemini models
+
+# Scientific computing (common for biomedical tasks)
+# scipy>=1.11.0
+# scikit-learn>=1.3.0
+# biopython>=1.81
+# matplotlib>=3.7.0
+# seaborn>=0.12.0
 
 # Add any other dependencies your Biomni agent requires
-
-# If Biomni is available as a package, uncomment and pin:
-# biomni>=0.1.0
+# but be mindful of async library conflicts
