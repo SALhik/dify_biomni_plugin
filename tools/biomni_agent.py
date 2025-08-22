@@ -1,12 +1,10 @@
 """
-Biomni Agent Tool Implementation
+Biomni Agent Tool Implementation for Dify Plugin
 """
 
 import logging
 import os
-import sys
 import time
-import importlib
 from typing import Any, Dict, Generator, Optional
 
 from dify_plugin import Tool
@@ -17,64 +15,43 @@ logger = logging.getLogger(__name__)
 
 class BiomniAgentTool(Tool):
     """
-    Tool for executing biomedical research tasks using Biomni agent
+    Tool for executing biomedical research tasks using Biomni A1 agent
     """
 
     def __init__(self):
         super().__init__()
         self.agent: Optional[Any] = None
-        self.agent_method_name: str = os.getenv("BIOMNI_AGENT_METHOD", "go")
         self._setup_biomni_agent()
-
-    def _import_from_string(self, import_path: str) -> Any:
-        """
-        Import an object from a string in the form 'package.module:attribute'.
-        """
-        module_path, _, attribute_name = import_path.partition(":")
-        if not module_path:
-            raise ImportError("Invalid import path: module is empty")
-        module = importlib.import_module(module_path)
-        return getattr(module, attribute_name) if attribute_name else module
 
     def _setup_biomni_agent(self) -> None:
         """
-        Setup and import the Biomni agent using environment variables for flexibility.
-        - BIOMNI_PYTHON_PATH: Optional sys.path entry to locate Biomni source
-        - BIOMNI_AGENT_IMPORT: Import path like 'biomni.agent:agent' or 'biomni:BiomniAgent'
-        - BIOMNI_AGENT_METHOD: Method on the agent to invoke (default: 'go')
+        Setup Biomni A1 agent with correct initialization parameters
         """
         try:
-            python_path = os.getenv("BIOMNI_PYTHON_PATH")
-            if python_path and python_path not in sys.path:
-                sys.path.append(python_path)
-
-            import_expr = os.getenv("BIOMNI_AGENT_IMPORT")
-            if import_expr:
-                imported_obj = self._import_from_string(import_expr)
-                # If the imported object is a class, instantiate it; if it's an instance, use as-is
-                self.agent = imported_obj() if callable(imported_obj) and getattr(imported_obj, "__name__", None) else imported_obj
-            else:
-                # Best-effort default import if Biomni is installed as a package
-                try:
-                    module = importlib.import_module("biomni")
-                    # Prefer a top-level 'agent' attribute; else attempt to construct a default agent class if present
-                    self.agent = getattr(module, "agent", None)
-                    if self.agent is None and hasattr(module, "BiomniAgent"):
-                        self.agent = getattr(module, "BiomniAgent")()
-                except Exception:
-                    # Leave self.agent as None; handled below
-                    self.agent = None
-
-            if self.agent is None:
-                logger.warning("Biomni agent is not configured (set BIOMNI_AGENT_IMPORT or ensure package is importable)")
-            else:
-                logger.info("Biomni agent setup completed")
+            # Import the correct Biomni agent
+            from biomni.agent import A1
+            from biomni.config import default_config
+            
+            # Configure Biomni settings
+            data_path = os.getenv("BIOMNI_DATA_PATH", "./data")
+            llm_model = os.getenv("BIOMNI_LLM_MODEL", "claude-sonnet-4-20250514")
+            timeout = int(os.getenv("BIOMNI_TIMEOUT_SECONDS", "600"))
+            
+            # Set global config (affects all operations)
+            default_config.llm = llm_model
+            default_config.timeout_seconds = timeout
+            
+            # Initialize A1 agent with required parameters
+            self.agent = A1(path=data_path, llm=llm_model)
+            
+            logger.info(f"Biomni A1 agent initialized successfully with model: {llm_model}")
 
         except ImportError as e:
-            logger.error(f"Failed to import Biomni agent: {str(e)}")
+            logger.error(f"Failed to import Biomni A1 agent: {str(e)}")
+            logger.error("Make sure Biomni is installed: pip install biomni")
             self.agent = None
         except Exception as e:
-            logger.error(f"Error setting up Biomni agent: {str(e)}")
+            logger.error(f"Error setting up Biomni A1 agent: {str(e)}")
             self.agent = None
 
     def _invoke(
@@ -83,14 +60,7 @@ class BiomniAgentTool(Tool):
         tool_parameters: Dict[str, Any]
     ) -> Generator[ToolInvokeMessage, None, None]:
         """
-        Invoke the Biomni agent with the given parameters
-
-        Args:
-            user_id: The ID of the user invoking the tool
-            tool_parameters: Parameters for the tool execution
-
-        Yields:
-            ToolInvokeMessage: Messages representing the tool execution progress and results
+        Invoke the Biomni A1 agent with the given parameters
         """
 
         research_query = tool_parameters.get("research_query", "").strip()
@@ -103,37 +73,32 @@ class BiomniAgentTool(Tool):
 
         if self.agent is None:
             yield self.create_text_message(
-                "❌ **Error**: Biomni agent is not properly configured. "
-                "Set BIOMNI_AGENT_IMPORT or ensure the Biomni package is installed."
+                "❌ **Error**: Biomni A1 agent is not properly configured.\n\n"
+                "**Setup Requirements**:\n"
+                "1. Install Biomni: `pip install biomni`\n"
+                "2. Set required API keys (ANTHROPIC_API_KEY, etc.)\n"
+                "3. Ensure sufficient disk space (~11GB for data lake)\n"
+                "4. Configure environment variables:\n"
+                "   - BIOMNI_DATA_PATH (default: ./data)\n"
+                "   - BIOMNI_LLM_MODEL (default: claude-sonnet-4-20250514)\n"
+                "   - ANTHROPIC_API_KEY (required for Claude models)"
             )
             return
 
         try:
             yield self.create_text_message(
-                f"🧬 **Biomni Agent Started**\n\n"
+                f"🧬 **Biomni A1 Agent Started**\n\n"
                 f"**Query**: {research_query[:200]}{'...' if len(research_query) > 200 else ''}\n"
                 f"**Max Time**: {max_execution_time} seconds\n"
                 f"**Citations**: {'Enabled' if include_citations else 'Disabled'}\n\n"
-                f"⏳ **Status**: Processing your biomedical research query..."
+                f"⏳ **Status**: Processing biomedical research query...\n"
+                f"📥 **Note**: First run may take longer due to data lake download (~11GB)"
             )
 
             start_time = time.time()
 
-            # Determine callable method to execute
-            method_name = self.agent_method_name
-            if not hasattr(self.agent, method_name):
-                # Try a few common fallbacks if custom method not found
-                for candidate in ("go", "run", "process_query", "__call__"):
-                    if hasattr(self.agent, candidate):
-                        method_name = candidate
-                        break
-                else:
-                    raise AttributeError(
-                        "Agent method not found. Set BIOMNI_AGENT_METHOD or expose one of: go, run, process_query, __call__."
-                    )
-
-            agent_callable = getattr(self.agent, method_name)
-            result = agent_callable(research_query)
+            # Call the Biomni A1 agent using the correct .go() method
+            result = self.agent.go(research_query)
 
             execution_time = time.time() - start_time
 
@@ -143,71 +108,87 @@ class BiomniAgentTool(Tool):
                 )
 
             yield self.create_text_message(
-                f"✅ **Biomni Analysis Complete**\n\n"
+                f"✅ **Biomni A1 Analysis Complete**\n\n"
                 f"**Query**: {research_query}\n\n"
                 f"**Execution Time**: {execution_time:.1f} seconds\n\n"
                 f"**Results**:\n\n{self._format_result(result, include_citations)}"
             )
 
-            logger.info(f"Biomni agent completed successfully for user {user_id}")
-
-        except TimeoutError:
-            yield self.create_text_message(
-                f"⏰ **Timeout**: The analysis exceeded the maximum execution time of {max_execution_time} seconds. "
-                f"Try breaking down your query into smaller parts or increasing the timeout limit."
-            )
+            logger.info(f"Biomni A1 agent completed successfully for user {user_id}")
 
         except Exception as e:
             error_msg = str(e)
-            logger.error(f"Biomni agent error for user {user_id}: {error_msg}")
+            logger.error(f"Biomni A1 agent error for user {user_id}: {error_msg}")
+
+            # Provide specific troubleshooting for common Biomni issues
+            troubleshooting = self._get_troubleshooting_tips(error_msg)
 
             yield self.create_text_message(
-                f"❌ **Biomni Agent Error**\n\n"
+                f"❌ **Biomni A1 Agent Error**\n\n"
                 f"**Error**: {error_msg}\n"
                 f"**Query**: {research_query}\n\n"
-                f"**Troubleshooting Tips**:\n"
-                f"• Check if your query is properly formatted\n"
-                f"• Ensure the Biomni agent is running and accessible\n"
-                f"• Set BIOMNI_AGENT_IMPORT and BIOMNI_AGENT_METHOD appropriately\n"
-                f"• Check the logs for more detailed error information"
+                f"**Troubleshooting Tips**:\n{troubleshooting}"
+            )
+
+    def _get_troubleshooting_tips(self, error_msg: str) -> str:
+        """
+        Provide specific troubleshooting tips based on error message
+        """
+        if "API" in error_msg or "key" in error_msg.lower():
+            return (
+                "• Check API key configuration:\n"
+                "  - ANTHROPIC_API_KEY for Claude models\n"
+                "  - OPENAI_API_KEY for GPT models\n"
+                "  - Other provider keys as needed\n"
+                "• Ensure API keys are valid and have sufficient credits"
+            )
+        elif "data" in error_msg.lower() or "path" in error_msg.lower():
+            return (
+                "• Check data path configuration (BIOMNI_DATA_PATH)\n"
+                "• Ensure sufficient disk space (~11GB for data lake)\n"
+                "• Verify read/write permissions for data directory\n"
+                "• Allow time for initial data lake download"
+            )
+        elif "timeout" in error_msg.lower():
+            return (
+                "• Increase BIOMNI_TIMEOUT_SECONDS environment variable\n"
+                "• Complex biomedical analyses may require more time\n"
+                "• Consider breaking down complex queries into parts"
+            )
+        else:
+            return (
+                "• Ensure Biomni is properly installed: pip install biomni\n"
+                "• Check environment setup following Biomni documentation\n"
+                "• Verify all required dependencies are installed\n"
+                "• Check the logs for more detailed error information"
             )
 
     def _format_result(self, result: Any, include_citations: bool = True) -> str:
         """
-        Format the result from Biomni agent for display.
-
-        Args:
-            result: The result from Biomni agent
-            include_citations: Whether to include citations in the output
-
-        Returns:
-            str: Formatted result string
+        Format the result from Biomni A1 agent for display
+        
+        Note: Biomni A1 returns results as strings, but may contain structured information
         """
         try:
-            if isinstance(result, dict):
+            if isinstance(result, str):
+                # Biomni A1 typically returns string results
+                return result
+            elif isinstance(result, dict):
+                # Handle structured results if present
                 formatted_result = ""
-
+                
                 if "analysis" in result:
                     formatted_result += f"**Analysis**:\n{result['analysis']}\n\n"
-
                 if "conclusions" in result:
                     formatted_result += f"**Conclusions**:\n{result['conclusions']}\n\n"
-
                 if "recommendations" in result:
                     formatted_result += f"**Recommendations**:\n{result['recommendations']}\n\n"
-
                 if include_citations and "references" in result:
                     formatted_result += f"**References**:\n{result['references']}\n\n"
-
-                if not formatted_result:
-                    formatted_result = str(result)
-
-                return formatted_result
-
-            if isinstance(result, str):
-                return result
-
-            return str(result)
+                    
+                return formatted_result or str(result)
+            else:
+                return str(result)
 
         except Exception as e:
             logger.error(f"Error formatting result: {str(e)}")
