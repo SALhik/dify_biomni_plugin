@@ -1,5 +1,5 @@
 """
-Biomni Agent Tool Implementation for Dify Plugin
+Biomni Agent Tool Implementation with Subprocess Support
 """
 
 import logging
@@ -221,6 +221,8 @@ except Exception as e:
             if value:
                 env_vars[key] = value
         
+        escaped_query = query.replace('"""', '\\"""')
+        
         # Create subprocess script
         script = f'''
 import os
@@ -243,7 +245,7 @@ try:
     agent = A1(path=data_path, llm=llm_model)
     
     # Execute query
-    result = agent.go("""{query.replace('"""', '\\"""')}""")
+    result = agent.go("""{escaped_query}""")
     
     # Return result as JSON
     output = {{
