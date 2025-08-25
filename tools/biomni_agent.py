@@ -132,7 +132,6 @@ except Exception as e:
 
     def _invoke(
         self,
-        user_id: str,
         tool_parameters: Dict[str, Any]
     ) -> Generator[ToolInvokeMessage, None, None]:
         """
