@@ -15,6 +15,8 @@ from pathlib import Path
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
+sys.path.append("/opt/anaconda3/envs/biomni_e1/lib/python3.11/site-packages")
+
 logger = logging.getLogger(__name__)
 
 
