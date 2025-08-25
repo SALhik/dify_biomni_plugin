@@ -1,6 +1,5 @@
 """
-Fixed Biomni Agent Tool Implementation with Subprocess Support
-This version avoids gevent/trio conflicts by using subprocess execution
+Corrected Biomni Agent Tool Implementation
 """
 
 import logging
@@ -43,14 +42,19 @@ class BiomniAgentTool(Tool):
                 # Try direct import first
                 try:
                     self._test_direct_import()
-                    from biomni.agent import A1
-                    from biomni.config import default_config
+                    # Try different import patterns
+                    agent_class = None
+                    try:
+                        from biomni.agent import A1
+                        agent_class = A1
+                    except ImportError:
+                        from biomni import A1
+                        agent_class = A1
                     
                     llm_model = os.getenv('BIOMNI_LLM_MODEL', 'claude-sonnet-4-20250514')
                     data_path = os.getenv('BIOMNI_DATA_PATH', './data')
                     
-                    default_config.llm = llm_model
-                    self.agent = A1(path=data_path, llm=llm_model)
+                    self.agent = agent_class(path=data_path, llm=llm_model)
                     self.use_subprocess = False
                     
                     logger.info("Biomni agent initialized in direct mode")
@@ -78,16 +82,12 @@ class BiomniAgentTool(Tool):
     def _test_direct_import(self) -> bool:
         """Test if Biomni can be imported directly without conflicts"""
         try:
-            # Quick import test
-            import importlib
-            spec = importlib.util.find_spec("biomni.agent")
-            if spec is None:
-                raise ImportError("Biomni not installed")
+            # Quick import test - try different patterns
+            try:
+                from biomni.agent import A1
+            except ImportError:
+                from biomni import A1
             
-            from biomni.agent import A1
-            from biomni.config import default_config
-            
-            # Quick initialization test (don't actually create agent)
             logger.info("Direct import test successful")
             return True
             
@@ -101,7 +101,11 @@ class BiomniAgentTool(Tool):
             test_script = '''
 import sys
 try:
-    from biomni.agent import A1
+    # Try different import patterns
+    try:
+        from biomni.agent import A1
+    except ImportError:
+        from biomni import A1
     print("SUBPROCESS_TEST_SUCCESS")
     sys.exit(0)
 except Exception as e:
@@ -143,7 +147,7 @@ except Exception as e:
             yield self.create_text_message("❌ **Error**: Please provide a research query")
             return
 
-        # Check if Biomni is available
+        # Check if Biomni is available (allow subprocess mode with None agent)
         if not self.use_subprocess and self.agent is None:
             yield self.create_text_message(
                 "❌ **Error**: Biomni agent is not properly configured.\n\n"
@@ -222,31 +226,35 @@ except Exception as e:
             if value:
                 env_vars[key] = value
         
-        escaped_query = query.replace('"""', '\\"""')
+        # Enhanced query escaping for subprocess
+        escaped_query = json.dumps(query)  # Use JSON encoding for proper escaping
         
-        # Create subprocess script
+        # Create subprocess script with better error handling
         script = f'''
 import os
 import sys
 import json
 
 try:
-    from biomni.agent import A1
-    from biomni.config import default_config
+    # Try different import patterns for Biomni
+    agent_class = None
+    try:
+        from biomni.agent import A1
+        agent_class = A1
+    except ImportError:
+        from biomni import A1
+        agent_class = A1
     
     # Configuration
     llm_model = os.getenv("BIOMNI_LLM_MODEL", "claude-sonnet-4-20250514")
     data_path = os.getenv("BIOMNI_DATA_PATH", "./data")
     
-    # Set global config
-    default_config.llm = llm_model
-    default_config.timeout_seconds = {timeout}
-    
     # Initialize agent
-    agent = A1(path=data_path, llm=llm_model)
+    agent = agent_class(path=data_path, llm=llm_model)
     
-    # Execute query
-    result = agent.go("""{escaped_query}""")
+    # Execute query (decode from JSON)
+    query = json.loads({escaped_query})
+    result = agent.go(query)
     
     # Return result as JSON
     output = {{
@@ -256,7 +264,7 @@ try:
     }}
     
     print("BIOMNI_RESULT_START")
-    print(json.dumps(output))
+    print(json.dumps(output, ensure_ascii=False))
     print("BIOMNI_RESULT_END")
     
 except Exception as e:
@@ -264,11 +272,12 @@ except Exception as e:
     error_output = {{
         "success": False,
         "error": str(e),
+        "error_type": type(e).__name__,
         "traceback": traceback.format_exc()
     }}
     
     print("BIOMNI_ERROR_START")
-    print(json.dumps(error_output))
+    print(json.dumps(error_output, ensure_ascii=False))
     print("BIOMNI_ERROR_END")
     sys.exit(1)
 '''
@@ -296,7 +305,9 @@ except Exception as e:
                     
                     try:
                         error_data = json.loads(error_json)
-                        raise RuntimeError(f"Biomni subprocess error: {error_data.get('error', 'Unknown error')}")
+                        error_type = error_data.get('error_type', 'Error')
+                        error_msg = error_data.get('error', 'Unknown error')
+                        raise RuntimeError(f"Biomni {error_type}: {error_msg}")
                     except json.JSONDecodeError:
                         pass
                 
