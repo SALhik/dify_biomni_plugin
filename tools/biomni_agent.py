@@ -15,9 +15,15 @@ from pathlib import Path
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
 
-sys.path.append("/opt/anaconda3/envs/biomni_e1/lib/python3.11/site-packages")
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+
+# Explicitly set Biomni's Python interpreter
+BIOMNI_PYTHON = "/opt/anaconda3/envs/biomni_e1/bin/python"
+
+load_dotenv()
 
 
 class BiomniAgentTool(Tool):
@@ -116,7 +122,7 @@ except Exception as e:
 '''
             
             result = subprocess.run(
-                [sys.executable, '-c', test_script],
+                [BIOMNI_PYTHON, '-c', test_script],
                 capture_output=True,
                 text=True,
                 timeout=30
@@ -286,7 +292,7 @@ except Exception as e:
         try:
             # Execute subprocess
             result = subprocess.run(
-                [sys.executable, '-c', script],
+                [BIOMNI_PYTHON, '-c', script],
                 capture_output=True,
                 text=True,
                 timeout=timeout,
