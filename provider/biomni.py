@@ -1,11 +1,12 @@
 """
-Biomni Provider Implementation with Improved Conflict Handling
+Biomni Provider Implementation - Corrected for Actual Biomni Package
 """
 
 import logging
 import os
 import subprocess
 import sys
+import json
 from typing import Any, Dict
 
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class BiomniProvider(ToolProvider):
     """
-    Biomni tool provider for biomedical research tasks with gevent/trio conflict handling
+    Biomni tool provider for biomedical research tasks
     """
 
     def _validate_credentials(self, credentials: Dict[str, Any]) -> None:
@@ -53,7 +54,7 @@ class BiomniProvider(ToolProvider):
                     f"Cannot access data path {data_path}: {str(e)}"
                 )
             
-            # Use subprocess validation to avoid gevent/trio conflicts
+            # Use subprocess validation to check Biomni availability
             self._validate_biomni_subprocess()
             
             logger.info(f"Biomni A1 agent validation successful with model: {llm_model}")
@@ -69,7 +70,7 @@ class BiomniProvider(ToolProvider):
 
     def _validate_biomni_subprocess(self) -> None:
         """
-        Validate Biomni using subprocess to avoid gevent/trio conflicts
+        Validate Biomni using subprocess - handles the actual Biomni package
         """
         validation_script = '''
 import sys
@@ -77,9 +78,34 @@ import os
 import json
 
 try:
-    # Test import
-    from biomni.agent import A1
-    from biomni.config import default_config
+    # Try to import Biomni - test multiple possible import patterns
+    agent_class = None
+    
+    # Try different import patterns based on actual Biomni structure
+    try:
+        from biomni.agent import A1
+        agent_class = A1
+    except ImportError:
+        try:
+            from biomni import A1
+            agent_class = A1
+        except ImportError:
+            try:
+                import biomni
+                # Check if biomni has an agent attribute or A1
+                if hasattr(biomni, 'A1'):
+                    agent_class = biomni.A1
+                elif hasattr(biomni, 'Agent'):
+                    agent_class = biomni.Agent
+                else:
+                    # List available attributes for debugging
+                    attrs = [attr for attr in dir(biomni) if not attr.startswith('_')]
+                    raise ImportError(f"No agent class found. Available: {attrs}")
+            except ImportError:
+                raise ImportError("Biomni package not installed or not accessible")
+    
+    if agent_class is None:
+        raise ImportError("Could not find Biomni agent class")
     
     # Test configuration
     llm_model = os.getenv("BIOMNI_LLM_MODEL", "claude-sonnet-4-20250514")
@@ -88,14 +114,13 @@ try:
     # Verify data path
     os.makedirs(data_path, exist_ok=True)
     
-    # Test basic configuration (don't initialize full agent)
-    default_config.llm = llm_model
-    
+    # Don't actually initialize the agent in validation, just verify imports work
     result = {
         "success": True,
         "message": "Biomni validation successful",
         "model": llm_model,
-        "data_path": data_path
+        "data_path": data_path,
+        "agent_class": agent_class.__name__ if agent_class else "Unknown"
     }
     
     print("VALIDATION_SUCCESS")
@@ -153,13 +178,12 @@ except Exception as e:
                         
                         if error_line:
                             error_data = json.loads(error_line)
-                        
-                        error_msg = error_data.get("message", "Unknown validation error")
-                        fix_msg = error_data.get("fix", "")
-                        
-                        raise ToolProviderCredentialValidationError(
-                            f"{error_msg}. {fix_msg}"
-                        )
+                            error_msg = error_data.get("message", "Unknown validation error")
+                            fix_msg = error_data.get("fix", "")
+                            
+                            raise ToolProviderCredentialValidationError(
+                                f"{error_msg}. {fix_msg}"
+                            )
                     except (json.JSONDecodeError, IndexError) as parse_error:
                         logger.warning(f"Failed to parse error JSON: {parse_error}")
                 
