@@ -1,5 +1,5 @@
 # Dify Plugin SDK
-dify-plugin>=0.1.0
+dify-plugin>=0.4.3
 
 # Standard library extensions
 python-dotenv>=1.0.0
