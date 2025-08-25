@@ -1,5 +1,6 @@
 """
-Biomni Agent Tool Implementation with Subprocess Support
+Fixed Biomni Agent Tool Implementation with Subprocess Support
+This version avoids gevent/trio conflicts by using subprocess execution
 """
 
 import logging
