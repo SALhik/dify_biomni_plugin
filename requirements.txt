@@ -12,16 +12,16 @@ subprocess32; sys_platform == "linux"
 # biomni>=0.0.6
 
 # Common Biomni dependencies (adjust versions as needed)
-requests>=2.31.0
-numpy>=1.24.0
-pandas>=2.0.0
+# requests>=2.31.0
+# numpy>=1.24.0
+# pandas>=2.0.0
 
 # Async handling (if needed for your specific Biomni version)
 # Avoid trio if possible in Dify environment
 # trio>=0.22.0  # Comment out if causing conflicts
 
 # LLM API clients (based on your chosen model)
-anthropic>=0.3.0  # For Claude models
+# anthropic>=0.3.0  # For Claude models
 # openai>=1.0.0  # For GPT models  
 # google-generativeai>=0.3.0  # For Gemini models
 
