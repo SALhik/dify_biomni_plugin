@@ -9,7 +9,7 @@ subprocess32; sys_platform == "linux"
 
 # 🔧 BIOMNI CONFIGURATION
 # Install Biomni with specific version constraints to avoid conflicts
-# biomni>=0.1.0
+# biomni>=0.0.6
 
 # Common Biomni dependencies (adjust versions as needed)
 requests>=2.31.0
